@@ -15,11 +15,19 @@ type TogoDoc struct {
 	Line    uint32
 }
 
-func GetDoc(Context string, Line uint32) TogoDoc {
-	return TogoDoc{strings.Split(Context, ":")[0], strings.Split(Context, ":")[1], Line}
+func GetDoc(Annotation string, Line uint32) TogoDoc {
+	Label := strings.Trim(strings.Fields(Annotation)[0], ":")
+	var Context strings.Builder
+
+	for i := 1; i < len(strings.Fields(Annotation)); i++ {
+		Context.WriteString(strings.Fields(Annotation)[i] + " ")
+	}
+
+	return TogoDoc{Label, Context.String(), Line}
 }
 
 var WaitGroup = sync.WaitGroup{}
+
 func Parse(Sourcefile string) {
 	var docs []TogoDoc
 	var sline uint32
@@ -41,7 +49,7 @@ func Parse(Sourcefile string) {
 	if len(docs) >= 1 {
 		fmt.Printf("\t%s\n", Sourcefile)
 		for _, doc := range docs {
-			fmt.Printf("(%d) %s: %s\n", doc.Line, doc.Label, doc.Context)
+			fmt.Printf("(L%d) %s: %s\n", doc.Line, doc.Label, doc.Context)
 		}
 	}
 
