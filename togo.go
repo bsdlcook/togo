@@ -63,7 +63,7 @@ func Parse(Sourcefile string) {
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Print("error: please specify a source file to parse.")
+		Usage()
 		os.Exit(1)
 	}
 
