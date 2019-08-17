@@ -3,16 +3,29 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
 	"sync"
 )
 
+const (
+	VERSION = "0.2.1"
+	// @Implement: Make LABEL_PREFIX mutable from the command-line.
+	LABEL_PREFIX = "@"
+	REPO         = "https://gitlab.com/nihilism/togo"
+)
+
 type TogoDoc struct {
 	Label   string
 	Context string
 	Line    uint32
+}
+
+func Usage() {
+	// @Cleanup: Use a more elegant way of handling the usage page.
+	fmt.Printf("togo %s, sourcecode annotation reviewer.\nUsage: togo [SOURCEFILES]...\n\nCommand-line utility to review annotations from the SOURCEFILES provided.\n\nFor more information, checkout the repo at %s.\n", VERSION, REPO)
 }
 
 func GetDoc(Annotation string, Line uint32) TogoDoc {
@@ -33,13 +46,14 @@ func Parse(Sourcefile string) {
 	var sline uint32
 	file, err := os.OpenFile(Sourcefile, os.O_RDONLY, os.ModePerm)
 	if err != nil {
-		fmt.Printf("could not open file: %v", err)
+		log.Fatal(err)
 	}
 
 	source := bufio.NewScanner(file)
 	for source.Scan() {
 		sline++
-		regex := regexp.MustCompile("@[a-zA-Z]*: .*")
+		// @Idea: Mutli-line comment support.
+		regex := regexp.MustCompile(LABEL_PREFIX + "[a-zA-Z]*: .*")
 		doc := regex.FindString(source.Text())
 		if doc != "" {
 			docs = append(docs, GetDoc(doc, sline))
@@ -63,7 +77,7 @@ func Parse(Sourcefile string) {
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Print("error: please specify a source file to parse.")
+		Usage()
 		os.Exit(1)
 	}
 
