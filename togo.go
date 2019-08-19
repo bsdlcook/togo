@@ -3,9 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/mgutz/ansi"
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -19,7 +21,7 @@ const (
 type TogoDoc struct {
 	Label   string
 	Context string
-	Line    uint32
+	Line    string
 }
 
 func Usage() {
@@ -27,7 +29,7 @@ func Usage() {
 	fmt.Printf("togo %s, sourcecode annotation reviewer.\nUsage: togo [SOURCEFILES]...\n\nCommand-line utility to review annotations from the SOURCEFILES provided.\n\nFor more information, checkout the repo at %s.\n", VERSION, REPO)
 }
 
-func GetDoc(Annotation string, Line uint32) TogoDoc {
+func GetDoc(Annotation string, Line string) TogoDoc {
 	Label := strings.Trim(strings.Fields(Annotation)[0], ":")
 	var Context strings.Builder
 
@@ -40,7 +42,7 @@ func GetDoc(Annotation string, Line uint32) TogoDoc {
 
 func Parse(Sourcefile string) {
 	var docs []TogoDoc
-	var sline uint32
+	var sline uint64
 	file, err := os.OpenFile(Sourcefile, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
@@ -54,14 +56,14 @@ func Parse(Sourcefile string) {
 		regex := regexp.MustCompile(LABEL_PREFIX + "[a-zA-Z]*: .*")
 		doc := regex.FindString(source.Text())
 		if doc != "" {
-			docs = append(docs, GetDoc(doc, sline))
+			docs = append(docs, GetDoc(doc, strconv.FormatUint(sline, 10)))
 		}
 	}
 
 	if len(docs) >= 1 {
-		fmt.Printf("\t%s\n", Sourcefile)
+		fmt.Printf("\t%s\n", ansi.Color(Sourcefile, "white+b"))
 		for _, doc := range docs {
-			fmt.Printf("(L%d) %s: %s\n", doc.Line, doc.Label, doc.Context)
+			fmt.Printf("(%s) %s: %s\n", ansi.Color("L"+doc.Line, "blue+b"), ansi.Color(doc.Label, "green+b"), ansi.Color(doc.Context, "white"))
 		}
 	}
 }
