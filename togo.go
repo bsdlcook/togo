@@ -7,7 +7,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"sync"
 )
 
 const (
@@ -39,8 +38,6 @@ func GetDoc(Annotation string, Line uint32) TogoDoc {
 	return TogoDoc{Label, Context.String(), Line}
 }
 
-var WaitGroup = sync.WaitGroup{}
-
 func Parse(Sourcefile string) {
 	var docs []TogoDoc
 	var sline uint32
@@ -48,6 +45,7 @@ func Parse(Sourcefile string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer file.Close()
 
 	source := bufio.NewScanner(file)
 	for source.Scan() {
@@ -66,13 +64,6 @@ func Parse(Sourcefile string) {
 			fmt.Printf("(L%d) %s: %s\n", doc.Line, doc.Label, doc.Context)
 		}
 	}
-
-	defer func() {
-		file.Close()
-		if len(os.Args) > 2 {
-			WaitGroup.Done()
-		}
-	}()
 }
 
 func main() {
@@ -82,11 +73,9 @@ func main() {
 	}
 
 	if len(os.Args) > 2 {
-		WaitGroup.Add(len(os.Args) - 1)
 		for i := 1; i < len(os.Args); i++ {
-			go Parse(os.Args[i])
+			Parse(os.Args[i])
 		}
-		WaitGroup.Wait()
 	} else {
 		Parse(os.Args[1])
 	}
