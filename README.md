@@ -1,53 +1,44 @@
-# What is togo?
+### Preface
 
 togo is a command-line utility to easily review source code annotations, provided with the following gramatical syntax for comments: ``@Label: Context.``, all of the annotations will be presented to the user for review. 
 
 togo will read the sourcefile and filter out unnecessary code, displaying: sourcefile name, line number of the comment followed by the label and context.
 
-A basic example could be as follows: 
+### Example
+
+A basic example sourcefile could be as follows: 
 
 ```cpp
 // file: example.cpp
 #include <string>
+#include <map> // @Cleanup: Remove this! We don't use maps.
 
-class Example
-{
-public:
-  // @Finish: Implement Foo() function.
-  static void Foo() {}
-  // @Cleanup: Make Bar() function private.
-  static void Bar(const std::string& Foobar) { this->_Foobar = Foobar; }
-
-private:
-  std::string _Foobar;
+// @Cleanup: Use a more appropiate class-name according to the Google guidelines.
+// See here: https://google.github.io/styleguide/cppguide.html
+// We need to be more consistent throughout our codebase.
+class Example {
+	public:
+		// @Finish: Implement Foo() function.
+		static void Foo() {}
+		// @Comment: Here is a brief description of the issue.
+		// Furthermore, we can add more context here if needed
+		// to convey a better understanding of the issue.
+		static void Bar() {} 
+		// @Cleanup: Ideally, use std::size_t instead.
+		static unsigned int Something() { return 1; }
+		// @Hack: Rewrite this function, it uses *too* many hacks.
+		static void Hacky() {}
+		// @Review: Cleanup on isle 3, please check this.
 };
 
-int
-main(void)
-{
-  // @Cleanup: Use a more appropiate lambda name.
-  auto ReallyLongName = []() { return 1; };
-
-  // @Cleanup: Use std::size_t instead.
-  for (unsigned int i = 0; i < 10; ++i)
-    Example::Bar(std::to_string(i));
-
-  // @Review: Something else here.
-  return (0);
+int main(void) {
+	// @Finish: Do something here.
+	return (0);
 }
 ```
 
-Yielding the output:
+Producing the following output:
 
-```
-	example.cpp
-(L7) @Finish: Implement Foo() function. 
-(L9) @Cleanup: Make Bar() function private. 
-(L16) @Cleanup: : : : ; : : ; hello world. 
-(L17) @Cleanup: lol. 
-(L21) @Cleanup: Use a more appropiate lambda name. 
-(L24) @Cleanup: Use std::size_t instead. 
-(L28) @Review: Something else here. 
-```
+![](https://s.wired.sh/misc/togo.png)
 
 Whilst this may seem like a useless program, I have found much use for it despite it's simplity.
