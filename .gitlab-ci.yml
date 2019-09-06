@@ -1,0 +1,33 @@
+image: golang:alpine
+
+variables:
+        REPO: gitlab.com/nihilism/togo
+
+before_script:
+        - apk add git
+        - mkdir -p $GOPATH/src/$(dirname $REPO)
+        - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO
+        - cd $GOPATH/src/$REPO
+
+stages:
+        - build
+
+compile:
+        stage: build
+        script:
+                - go get
+                - export CGO_ENABLED=0 # Statically compile togo
+                - export GOOS=freebsd GOARCH=386 # FreeBSD, i386
+                - go build -o togo-freebsd-i386
+                - export GOARCH=amd64 # FreeBSD, amd64
+                - go build -o togo-freebsd-amd64
+                - export GOOS=linux GOARCH=386 # Linux, i386
+                - go build -o togo-linux-i386
+                - export GOARCH=amd64 # Linux, amd64
+                - go build -o togo-linux-amd64
+        artifacts:
+                paths:
+                        - togo-freebsd-i386
+                        - togo-freebsd-amd64
+                        - togo-linux-i386
+                        - togo-linux-amd64
